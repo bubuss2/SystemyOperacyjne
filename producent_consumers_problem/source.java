@@ -1,34 +1,27 @@
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
-//klasa realizująca operacje na buforze - należy uzupełnić kod/pola *tylko w tej klasie*
-//korzystając z semaforów (klasa Semaphore) i metod/bloków synchronized
-
-class Bufor {
+class Buffor {
   private char buf[];
-  private int rozmiar; //pomocnicze
+  private int size;
   private int in, out;
 
-  // semafor producentow i konsumentow
   static Semaphore semConsumers = new Semaphore(0);
   static Semaphore semProducers;
   
-  // tworze objekty pomocniczy do synchronizacji producentow i konsumentow
-  // gdyz synchronizacja na klase nie zadziala (zablokuje jednoczesnie producentow i konsumentow a nie osobno)
+
   Object synchConsumers = new Object();
   Object synchProducers = new Object();
 
-  public Bufor(int N)
+  public Buffor(int N)
   {
     buf = new char[N];
     in = out = 0;
-    // ustaw semafor konsumentow na wielkosc buffora
     semProducers = new Semaphore(N);
 
-    System.out.println("Utworzono bufor rozmiaru "+N+".");
+    System.out.println("Created buffor of size "+N+".");
   }
 
-//dodaj element x do bufora
   public void dodaj(char x)
   {
     try {
@@ -40,13 +33,11 @@ class Bufor {
 
     synchronized (synchProducers){
         buf[out] = x;
-        out = (out+1)%rozmiar;
+        out = (out+1)%size;
     }
 
     semConsumers.release();
   }
-
-//pobierz element z bufora i zwróć go
   public char pobierz()
   {
     char x;
@@ -59,7 +50,7 @@ class Bufor {
 
     synchronized(synchConsumers){
         x = buf[in];
-        in = (in+1)%rozmiar;
+        in = (in+1)%size;
     }
     
     semProducers.release();
@@ -68,14 +59,13 @@ class Bufor {
 
 }
 
-//klasa producenta
-class Producent extends Thread {
+class Producer extends Thread {
   String id;
-  Bufor buf;
+  Buffor buf;
 
-  public Producent(String nazwa, Bufor bufor) {
-    id = nazwa;
-    buf = bufor;
+  public Producer(String name, Buffor Buffor) {
+    id = name;
+    buf = Buffor;
   }
 
   public void run() {
@@ -83,26 +73,25 @@ class Producent extends Thread {
     char x = 'A'-1;
 
     while (true) {
-      System.out.println("Producent "+id+" produkuje...");
+      System.out.println("Producer "+id+" produkuje...");
       try {
-        sleep(500+r.nextInt(500)); //losowe opóźnienie produkcji
+        sleep(500+r.nextInt(500));
       } catch (InterruptedException e) {}
 
       x++;
-      System.out.println("Producent "+id+" umieszczam w buforze: "+x);
+      System.out.println("Producer "+id+" umieszczam w Bufforze: "+x);
       buf.dodaj(x);
     }
   }
 }
 
-//klasa konsumenta
-class Konsument extends Thread {
-  Bufor buf;
+class Consument extends Thread {
+  Buffor buf;
   String id;
 
-  public Konsument(String nazwa, Bufor bufor) {
-    buf = bufor;
-    id = nazwa;
+  public Consument(String name, Buffor Buffor) {
+    buf = Buffor;
+    id = name;
   }
 
   public void run() {
@@ -110,30 +99,28 @@ class Konsument extends Thread {
 
     while (true) {
       char x = buf.pobierz();
-      System.out.println("Konsument "+id+" pobral: "+x);
+      System.out.println("Consument "+id+" pobral: "+x);
 
-      System.out.println("Konsument "+id+" konsumuje...");
+      System.out.println("Consument "+id+" konsumuje...");
       try {
-        sleep(500+r.nextInt(2000)); //losowe opóźnienie konsumpcji
+        sleep(500+r.nextInt(2000));
       } catch (InterruptedException e) {}
     }
   }
 }
 
-//klasa główna
 public class ProdKons {
 
   public static void main(String[] arg) {
-    Bufor b = new Bufor(5);
-    Producent p1 = new Producent("P1", b);
-    Konsument k1 = new Konsument("K1", b);
-    Konsument k2 = new Konsument("K2", b);
+    Buffor b = new Buffor(5);
+    Producer p1 = new Producer("P1", b);
+    Consument k1 = new Consument("K1", b);
+    Consument k2 = new Consument("K2", b);
 
     p1.start();
     k1.start();
     k2.start();
 
-//uwaga: w obecnym rozwiązaniu wątki nie kończą działania
     try {
       p1.join();
       k1.join();
