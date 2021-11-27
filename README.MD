@@ -1,2 +1,3 @@
-<h1>University Projects - Systemy Operacyjne</h1>
-<p>Repository with source code of projects for programming class "Systemy Operacyjne" in computer science program on Jagiellonian University. Mainly written in scripts languages like python/perl etc.</p>
+# University Assignments - Operating Systems (Systemy Operacyjne)
+### Repository with source code of projects for programming class "Systemy Operacyjne" in computer science program on Jagiellonian University. 
+### Some are simple scripts in Bash, Perl and Python. Programs in Java and C are mainly about concurrency and multithreading.
